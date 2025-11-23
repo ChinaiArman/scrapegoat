@@ -2,7 +2,7 @@ from requests.exceptions import HTTPError, MissingSchema
 from textual.app import App, SystemCommand
 from textual.screen import ModalScreen
 from textual.binding import Binding
-from textual.widgets import Header, Footer, Tree, Button, Static, TextArea, Collapsible, Checkbox, Input, ListView, ListItem
+from textual.widgets import Header, Footer, Tree, Button, Static, Select, Collapsible, Checkbox, Input, ListView, ListItem, RadioSet, ContentSwitcher, Label
 from textual.widgets.tree import TreeNode
 from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll
 from importlib.resources import files
@@ -18,6 +18,8 @@ NodeAttributes = (
 ChurnFlags = (
 	"ignore-children", "ignore-grandchildren"
 )
+
+PresentTags = {}
 
 def write_to_clipboard(string:str) -> None:
 	os_name = system()
@@ -40,6 +42,7 @@ class NodeWrapper():
 		self.added_to_query = False
 		self.extract_attributes = []
 		self.flags = []
+		PresentTags[html_node.tag_type] = True
 
 	def _update_branch_label(self, new_label: str):
 		self.branch.label = new_label
@@ -285,6 +288,9 @@ class ControlPanel(VerticalGroup):
 		self.query_nodes = []
 		self.query_one(ListView).clear()
 
+	def append_to_query(self, clause):
+		pass
+
 class FindModal(ModalScreen):
 	BINDINGS = [
 		("escape", "app.pop_screen", "Exit")
@@ -326,14 +332,95 @@ class SetURLModal(ModalScreen):
 		else:
 			self.button.variant = "success"
 
+class AppendQueryModal(ModalScreen):
+	BINDINGS = [
+		("escape", "app.pop_screen", "Exit")
+	]
+
+	class ClauseWrapper():
+		def __init__(self):
+			self.type = -1 # 0: Selector, 1: Output
+
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.select_set = Select([(opt, opt) for opt in ("Universal Selector", "Output Statement")], allow_blank=False)
+		self.enter_button = Button("Append Query", variant="success", id="append-query-enter")
+		self.cur_selection = "selector" # or "output"
+		self.clause = {
+			"file_name": "",
+			"directory_path": "",
+			"target_tags": "",
+			"file_type": "json"
+		}
+		self.clause_preview = Label(f"SCRAPE {self.clause["target_tags"]};", id="append-query-preview")
+
+		#Universal Selector Options
+		self.selector_options = (
+			Input(placeholder="target tag", id="selector-tag-type"),
+		)
+		#Output Statement Options
+		self.output_options = (
+			RadioSet("JSON", "CSV", id="output-file-type"),
+			Input(placeholder="output directory", id="output-directory-path"),
+			Input(placeholder="file name", id="output-file-name")
+		)
+
+	def compose(self):
+		with HorizontalGroup(id="append-query-buttons"):
+			yield Button("Universal Selector", id="append-query-selector")
+			yield Button("Output Statement", id="append-query-output")
+
+		with ContentSwitcher(initial="append-query-selector"):
+			with VerticalGroup(id="append-query-selector"):
+				for option in self.selector_options:
+					yield option
+			with VerticalGroup(id="append-query-output"):
+				for option in self.output_options:
+					yield option
+
+		yield self.clause_preview
+		yield self.enter_button
+
+	def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
+		if event.radio_set.id == "output-file-type":
+			self.clause["file_type"] = "json" if event.pressed.label._text == "JSON" else "csv"
+			self.update_clause(f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";")
+
+	def on_button_pressed(self, event: Button.Pressed) -> None:
+		if event.button.id in ("append-query-selector", "append-query-output"):
+			self.query_one(ContentSwitcher).current = event.button.id
+			if event.button.id == "append-query-selector":
+				self.update_clause(f"SCRAPE {self.clause["target_tags"]};")
+			elif event.button.id == "append-query-output":
+				self.update_clause(f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";")
+	
+	def on_input_changed(self, event: Input.Changed) -> None:
+		if event.input.id == "output-directory-path":
+			self.clause["directory_path"] = event.value
+			self.update_clause(f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";")
+		elif event.input.id == "output-file-name":
+			self.clause["file_name"] = event.value
+			self.update_clause(f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";")
+		elif event.input.id == "selector-tag-type":
+			self.clause["target_tags"] = event.value
+			self.update_clause(f"SCRAPE {self.clause["target_tags"]};")
+
+	def update_clause(self, new) -> None:
+		self.query_one(Label).update(new)
+
+class RemoveQueryModal(ModalScreen):
+	BINDINGS = [
+		("escape", "app.pop_screen", "Exit")
+	]
+
 class Loom(App):
 	CSS_PATH = str(files("scrapegoat_loom").joinpath("gui-styles/tapestry.tcss"))
-	SCREENS = {"find": FindModal, "set-url": SetURLModal}
+	SCREENS = {"find": FindModal, "set-url": SetURLModal, "add-query": AppendQueryModal}
 	BINDINGS = [
 		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),
 		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows the node search widget."),
 		Binding("ctrl+u", "toggle_set_url", "Set URL", tooltip="Shows the URL input widget."),
-		Binding("ctrl+i", "toggle_insert_query", "Insert Query", tooltip="Appends a new scrape query."),
+		Binding("ctrl+a", "toggle_insert_query", "Append Query", tooltip="Appends a new scrape query."),
 		Binding("ctrl+r", "toggle_remove_query", "Remove Query", tooltip="Removes a query.")
 	]
 
@@ -354,6 +441,7 @@ class Loom(App):
 
 	def _create_tree_from_root_node(self, node) -> Tree:
 		self.nodes = {}
+		PresentTags = {}
 		tree = None
 
 		for child in node.preorder_traversal():
@@ -408,6 +496,9 @@ class Loom(App):
 	def action_toggle_set_url(self) -> None:
 		self.push_screen("set-url")
 
+	def action_toggle_insert_query(self) -> None:
+		self.push_screen("add-query")
+
 	def update_url(self) -> None:
 		if self.url == self.prev_url:
 			return
@@ -422,7 +513,6 @@ class Loom(App):
 			prev_tree.root = new_tree.root
 			self.has_tree = True
 			self.control_panel.reset()
-			#self.control_panel.update_url()
 			self.prev_url = self.url
 			self.control_panel.update_node(self.nodes[new_tree.root._html_node_id])
 		except HTTPError:
