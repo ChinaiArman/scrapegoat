@@ -1,3 +1,4 @@
+from requests.exceptions import HTTPError, MissingSchema
 from textual.app import App, SystemCommand
 from textual.screen import ModalScreen
 from textual.binding import Binding
@@ -160,7 +161,7 @@ class ControlPanel(VerticalGroup):
 			id="ctrl-buttons",
 		)
 
-		yield TextArea("", read_only=True)
+		yield ListView()
 
 	def update_node(self, node: NodeWrapper):
 		self.node_details["node_desc"].clear()
@@ -180,22 +181,22 @@ class ControlPanel(VerticalGroup):
 				self.contextual_button.variant = "success"
 
 			for node_attribute in NodeAttributes:
-				index = f"node-attribute-{node.id}-{node_attribute}"
+				index = f"node-attribute-{hash(f"{node.id}-{node_attribute}")}"
 
 				if node.node.has_attribute(node_attribute):
 					if node_attribute == "children":
 						children = [child.id for child in node.node.children]
-						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: {", ".join(children)}")))
+						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: {", ".join(children)}", classes="node-desc-item")))
 					elif node_attribute != "body":
-						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: {node.node.to_dict()[node_attribute]}")))
+						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: {node.node.to_dict()[node_attribute]}"), classes="node-desc-item"))
 					elif len(node.node.body) > 0:
-						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: ...")))
+						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: ...", classes="node-desc-item")))
 					self.node_details["queried_attributes"].mount(
 						Checkbox(f"{node_attribute}", id=index, value=self.current_node.check_query_attribute(node_attribute))
 					)
 
 			for html_attribute in node.node.html_attributes:
-				index = f"html-attribute-{node.id}-{html_attribute.replace("@", "")}"
+				index = f"html-attribute-{hash(f"{node.id}-{html_attribute.replace("@", "")}")}"
 
 				self.node_details["node_desc"].append(ListItem(Static(f"{html_attribute}: {node.node.html_attributes[html_attribute]}")))
 				self.node_details["queried_attributes"].mount(
@@ -203,48 +204,50 @@ class ControlPanel(VerticalGroup):
 				)
 
 			for flag in ChurnFlags:
-				index = f"flag-{node.id}-{flag}"
+				index = f"flag-{hash(f"{node.id}-{flag}")}"
 
 				self.node_details["flags"].mount(
 					Checkbox(f"{flag}", id=index, value=self.current_node.check_flag(flag))
 				)
+
+	def update_url(self, url):
+		pass
 	
 	def add_node(self):
 		if self.current_node and self.current_node not in self.query_nodes:
 			self.query_nodes.append(self.current_node)
-			text_area = self.query_one(TextArea)
+			query_list = self.query_one(ListView)
 
 			self.current_node.set_querying(True)
 			
-			text_area.text += "\n" + self.current_node.get_retrieval_instructions()
-			text_area.text = text_area.text.strip()
+			self.current_node.query_item = ListItem(Static(self.current_node.get_retrieval_instructions()))
+			query_list.append(self.current_node.query_item)
 
 			self.contextual_button.label = "<->"
 			self.contextual_button.variant = "error"
 
 	def append_attribute(self, attribute):
-		prev_instr = self.current_node.get_retrieval_instructions()
 		self.current_node.append_attribute(attribute)
 		new_instr = self.current_node.get_retrieval_instructions()
 
-		text_area = self.query_one(TextArea)
-		text_area.text = text_area.text.replace(prev_instr, new_instr)
+		list_item = self.current_node.query_item
+		list_item.children[0].remove()
+		list_item.mount(Static(new_instr))
 
 	def append_flag(self, flag):
-		prev_instr = self.current_node.get_retrieval_instructions()
 		self.current_node.append_flag(flag)
 		new_instr = self.current_node.get_retrieval_instructions()
 
-		text_area = self.query_one(TextArea)
-		text_area.text = text_area.text.replace(prev_instr, new_instr)
+		list_item = self.current_node.query_item
+		list_item.children[0].remove()
+		list_item.mount(Static(new_instr))
 	
 	def remove_node(self):
 		if self.current_node and self.current_node in self.query_nodes:
 			self.query_nodes.remove(self.current_node)
-			text_area = self.query_one(TextArea)
+			query_list = self.query_one(ListView)
 			
-			text_area.text = text_area.text.replace(self.current_node.get_retrieval_instructions(), "")
-			text_area.text = text_area.text.strip()
+			self.current_node.query_item.remove()
 
 			self.current_node.set_querying(False)
 
@@ -252,28 +255,35 @@ class ControlPanel(VerticalGroup):
 			self.contextual_button.variant = "success"
 
 	def remove_attribute(self, attribute):
-		prev_instr = self.current_node.get_retrieval_instructions()
 		self.current_node.remove_attribute(attribute)
 		new_instr = self.current_node.get_retrieval_instructions()
 
-		text_area = self.query_one(TextArea)
-		text_area.text = text_area.text.replace(prev_instr, new_instr)
+		list_item = self.current_node.query_item
+		list_item.children[0].remove()
+		list_item.mount(Static(new_instr))
 
 	def remove_flag(self, flag):
-		prev_instr = self.current_node.get_retrieval_instructions()
 		self.current_node.remove_flag(flag)
 		new_instr = self.current_node.get_retrieval_instructions()
 
-		text_area = self.query_one(TextArea)
-		text_area.text = text_area.text.replace(prev_instr, new_instr)
+		list_item = self.current_node.query_item
+		list_item.children[0].remove()
+		list_item.mount(Static(new_instr))
 
 	def get_query(self):
-		return self.query_one(TextArea).text
+		query = ""
+		for i in range(0, len(self.query_nodes)):
+			node = self.query_nodes[i]
+			query += node.get_retrieval_instructions()
+			if i != len(self.query_nodes) - 1:
+				query += "\n"
+
+		return query
 	
 	def reset(self):
 		self.current_node = None
 		self.query_nodes = []
-		self.query_one(TextArea).text = ""
+		self.query_one(ListView).clear()
 
 class FindModal(ModalScreen):
 	BINDINGS = [
@@ -322,7 +332,9 @@ class Loom(App):
 	BINDINGS = [
 		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),
 		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows the node search widget."),
-		Binding("ctrl+u", "toggle_set_url", "Set URL", tooltip="Shows the URL input widget.")
+		Binding("ctrl+u", "toggle_set_url", "Set URL", tooltip="Shows the URL input widget."),
+		Binding("ctrl+i", "toggle_insert_query", "Insert Query", tooltip="Appends a new scrape query."),
+		Binding("ctrl+r", "toggle_remove_query", "Remove Query", tooltip="Removes a query.")
 	]
 
 	def __init__(self, **kwargs):
@@ -410,10 +422,13 @@ class Loom(App):
 			prev_tree.root = new_tree.root
 			self.has_tree = True
 			self.control_panel.reset()
+			#self.control_panel.update_url()
 			self.prev_url = self.url
 			self.control_panel.update_node(self.nodes[new_tree.root._html_node_id])
-		except:
-			pass # TODO: Add error popup (Toast?)
+		except HTTPError:
+			self.notify("The URL you entered could not be reached. Please check your internet connection and try again.", title="Could Not Resolve URL", severity="warning", timeout=10)
+		except MissingSchema:
+			self.notify("The URL you entered is invalid. Please try again.", title="Could Not Resolve URL", severity="warning", timeout=10)
 
 	def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
 		if self.has_tree:
