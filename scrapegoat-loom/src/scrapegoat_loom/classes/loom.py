@@ -19,8 +19,6 @@ ChurnFlags = (
 	"ignore-children", "ignore-grandchildren"
 )
 
-PresentTags = {}
-
 def write_to_clipboard(string:str) -> None:
 	os_name = system()
 	match os_name:
@@ -42,7 +40,6 @@ class NodeWrapper():
 		self.added_to_query = False
 		self.extract_attributes = []
 		self.flags = []
-		PresentTags[html_node.tag_type] = True
 
 	def _update_branch_label(self, new_label: str):
 		self.branch.label = new_label
@@ -137,6 +134,22 @@ class NodeWrapper():
 		
 		return False
 
+class QueryWrapper:
+	def __init__(self, query):
+		self.query = query
+		self.query_item = ListItem(Static(query))
+
+	def get_retrieval_instructions(self):
+		return self.query
+	
+	def __eq__(self, other):
+		if type(other) == QueryWrapper:
+			return other.get_retrieval_instructions() == self.get_retrieval_instructions()
+		elif type(other) == str:
+			return other == self.get_retrieval_instructions()
+		else:
+			return False
+
 class ControlPanel(VerticalGroup):
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
@@ -214,7 +227,13 @@ class ControlPanel(VerticalGroup):
 				)
 
 	def update_url(self, url):
-		pass
+		self.reset()
+		self.append_query(f"VISIT {url};")
+
+	def append_query(self, query):
+		wrapped = QueryWrapper(query)
+		self.query_nodes.append(wrapped)
+		self.query_one(ListView).append(wrapped.query_item)
 	
 	def add_node(self):
 		if self.current_node and self.current_node not in self.query_nodes:
@@ -288,9 +307,6 @@ class ControlPanel(VerticalGroup):
 		self.query_nodes = []
 		self.query_one(ListView).clear()
 
-	def append_to_query(self, clause):
-		pass
-
 class FindModal(ModalScreen):
 	BINDINGS = [
 		("escape", "app.pop_screen", "Exit")
@@ -346,17 +362,19 @@ class AppendQueryModal(ModalScreen):
 		self.select_set = Select([(opt, opt) for opt in ("Universal Selector", "Output Statement")], allow_blank=False)
 		self.enter_button = Button("Append Query", variant="success", id="append-query-enter")
 		self.cur_selection = "selector" # or "output"
-		self.clause = {
-			"file_name": "",
-			"directory_path": "",
-			"target_tags": "",
-			"file_type": "json"
-		}
+		self.clause = {}
+		self.reset_clause()
 		self.clause_preview = Label(f"SCRAPE {self.clause["target_tags"]};", id="append-query-preview")
+
+		selector_node_attributes = HorizontalScroll(*[Checkbox(attr, id=f"selector-na-{attr}") for attr in NodeAttributes], id="selector-node-attributes")
+		selector_flags = HorizontalScroll(*[Checkbox(flag, id=f"selector-fl-{flag}") for flag in ChurnFlags], id="selector-flags")
 
 		#Universal Selector Options
 		self.selector_options = (
-			Input(placeholder="target tag", id="selector-tag-type"),
+			Input(placeholder="target tags", id="selector-tag-type"),
+			selector_node_attributes,
+			Input(placeholder="html attributes", id="selector-html-attributes"),
+			selector_flags
 		)
 		#Output Statement Options
 		self.output_options = (
@@ -384,29 +402,70 @@ class AppendQueryModal(ModalScreen):
 	def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
 		if event.radio_set.id == "output-file-type":
 			self.clause["file_type"] = "json" if event.pressed.label._text == "JSON" else "csv"
-			self.update_clause(f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";")
+			self.update_clause()
 
 	def on_button_pressed(self, event: Button.Pressed) -> None:
 		if event.button.id in ("append-query-selector", "append-query-output"):
 			self.query_one(ContentSwitcher).current = event.button.id
 			if event.button.id == "append-query-selector":
-				self.update_clause(f"SCRAPE {self.clause["target_tags"]};")
+				self.cur_selection = "selector"
 			elif event.button.id == "append-query-output":
-				self.update_clause(f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";")
+				self.cur_selection = "output"
+			self.update_clause()
+		elif event.button.id == "append-query-enter":
+			self.dismiss(self.clause["raw"])
+			self.reset_clause()
 	
 	def on_input_changed(self, event: Input.Changed) -> None:
 		if event.input.id == "output-directory-path":
 			self.clause["directory_path"] = event.value
-			self.update_clause(f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";")
 		elif event.input.id == "output-file-name":
 			self.clause["file_name"] = event.value
-			self.update_clause(f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";")
 		elif event.input.id == "selector-tag-type":
 			self.clause["target_tags"] = event.value
-			self.update_clause(f"SCRAPE {self.clause["target_tags"]};")
+		elif event.input.id == "selector-html-attributes":
+			self.clause["html_attributes"] = event.value.replace(" ", "").replace("@", "").split(",")
+		self.update_clause()
 
-	def update_clause(self, new) -> None:
+	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
+		if event.checkbox.id[:12] == "selector-na-":
+			if event.value:
+				self.clause["node_attributes"].append(str(event.checkbox.label))
+			else:
+				self.clause["node_attributes"].remove(str(event.checkbox.label))
+		elif event.checkbox.id[:12] == "selector-fl-":
+			if event.value:
+				self.clause["flags"].append(str(event.checkbox.label))
+			else:
+				self.clause["flags"].remove(str(event.checkbox.label))
+		self.update_clause()
+
+	def update_clause(self) -> None:
+		new = ""
+		if self.cur_selection == "selector":
+			new = f"SCRAPE {self.clause["target_tags"]};"
+			if len(self.clause["node_attributes"]) + len(self.clause["html_attributes"]) + len(self.clause["flags"]) > 0:
+				new += f"\nEXTRACT {(", ".join(self.clause["node_attributes"]) + " ") if len(self.clause["node_attributes"]) > 0 else ""}"
+				new += ("@" + ", @".join(self.clause["html_attributes"]) + " ") if len(self.clause["html_attributes"]) > 0 else ""
+				new += ("--" + ", --".join(self.clause["flags"])) if len(self.clause["flags"]) > 0 else ""
+				new += ";"
+		elif self.cur_selection == "output":
+			new = f"OUTPUT {self.clause["file_type"]} --filename \"{self.clause["file_name"]}\" --filepath \"{self.clause["directory_path"]}\";"
+		
+		self.clause["raw"] = new
 		self.query_one(Label).update(new)
+
+	def reset_clause(self) -> None:
+		self.clause = {
+			"file_name": "",
+			"directory_path": "",
+			"target_tags": "",
+			"file_type": "json",
+			"node_attributes": [],
+			"html_attributes": [],
+			"flags": [],
+			"raw": ""
+		}
 
 class RemoveQueryModal(ModalScreen):
 	BINDINGS = [
@@ -441,7 +500,6 @@ class Loom(App):
 
 	def _create_tree_from_root_node(self, node) -> Tree:
 		self.nodes = {}
-		PresentTags = {}
 		tree = None
 
 		for child in node.preorder_traversal():
@@ -497,7 +555,7 @@ class Loom(App):
 		self.push_screen("set-url")
 
 	def action_toggle_insert_query(self) -> None:
-		self.push_screen("add-query")
+		self.push_screen("add-query", lambda x: self.control_panel.append_query(x))
 
 	def update_url(self) -> None:
 		if self.url == self.prev_url:
@@ -512,7 +570,7 @@ class Loom(App):
 
 			prev_tree.root = new_tree.root
 			self.has_tree = True
-			self.control_panel.reset()
+			self.control_panel.update_url(self.url)
 			self.prev_url = self.url
 			self.control_panel.update_node(self.nodes[new_tree.root._html_node_id])
 		except HTTPError:
