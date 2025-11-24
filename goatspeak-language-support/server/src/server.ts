@@ -8,7 +8,10 @@ import {
     TextDocumentSyncKind,
     InitializeResult,
     CompletionItem,
-    CompletionItemKind
+    CompletionItemKind,
+    HoverParams,
+    MarkupKind,
+    MarkupContent
 } from 'vscode-languageserver/node'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 
@@ -19,7 +22,8 @@ connection.onInitialize((_params: InitializeParams): InitializeResult => {
     return {
         capabilities: {
             textDocumentSync: TextDocumentSyncKind.Incremental,
-            completionProvider: { resolveProvider: true }
+            completionProvider: { resolveProvider: true },
+            hoverProvider: true
         }
     }
 })
@@ -64,6 +68,43 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
     }
     return item
 })
+
+connection.onHover((params: HoverParams) => {
+    const doc = documents.get(params.textDocument.uri)
+    if (!doc) return null
+
+    const word = getWordAt(doc.getText(), params.position)
+    if (!word) return null
+
+    const hoverContent: Record<string, MarkupContent> = {
+        VISIT: { kind: MarkupKind.Markdown, value: "Load the HTML DOM contents from a URL into the program. This is the starting point for scraping; all scripts will start from the root HTML tag unless rebased with a SELECT." },
+        SCRAPE: { kind: MarkupKind.Markdown, value: "Select elements from the current page. Use this to gather raw elements you want to process or extract data from." },
+        SELECT: { kind: MarkupKind.Markdown, value: "Narrow or rebase your focus to a subset of elements. Used in place of a conditional IN, where the condition needs to be applied to the parent element rather than the child." },
+        EXTRACT: { kind: MarkupKind.Markdown, value: "Pull specific attributes or content from the selected elements, such as id, class, or text content, to store or output later." },
+        OUTPUT: { kind: MarkupKind.Markdown, value: "Write scraped or extracted data to a file in a specified format (CSV or JSON). Supports custom filenames and file paths." },
+        IF: { kind: MarkupKind.Markdown, value: "Create a conditional to filter elements during scraping. Use IF statements to scrape elements only when specific conditions are met." },
+        IN: { kind: MarkupKind.Markdown, value: "Apply a condition to filter elements during scraping. USE IN to scrape elements only when specific position conditions are met." },
+        POSITION: { kind: MarkupKind.Markdown, value: "Refers to the index of the current element within the selection. Useful for targeting specific elements based on their order. POSITION can only be used with IN conditional statements." },
+        CSV: { kind: MarkupKind.Markdown, value: "Comma-Separated Values format. A simple text format for tabular data, where each line represents a row and each value is separated by a comma." },
+        JSON: { kind: MarkupKind.Markdown, value: "JavaScript Object Notation format. A lightweight data-interchange format that is easy for humans to read and write, and easy for machines to parse and generate." }
+    }
+
+    if (hoverContent[word]) {
+        return { contents: hoverContent[word] }
+    }
+
+    return null
+})
+
+function getWordAt(text: string, position: { line: number; character: number }) {
+    const lines = text.split(/\r?\n/)
+    const line = lines[position.line]
+    if (!line) return null
+
+    const left = line.slice(0, position.character).match(/[A-Z]+$/)?.[0]
+    const right = line.slice(position.character).match(/^[A-Z]+/)?.[0]
+    return (left || "") + (right || "")
+}
 
 // --- Diagnostics: warn if line doesn't end with ; ---
 documents.onDidChangeContent(change => {
