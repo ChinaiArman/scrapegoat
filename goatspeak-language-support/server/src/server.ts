@@ -194,16 +194,23 @@ documents.onDidChangeContent(change => {
         const firstWord = line.split(/\s+/)[0]
         if (!isCommand(firstWord)) continue
 
+        // NEW: Reset query state when VISIT or SELECT starts a new query
+        if (firstWord === "VISIT" || firstWord === "SELECT") {
+            resetState()
+        }
+
         // VISIT checks
         if (firstWord === "VISIT") {
             if (!hasVisit) {
+                // First VISIT in file
                 hasVisit = true
                 visitLine = i
             } else if (hasRunCommand) {
+                // A VISIT appearing after any other command in a query is invalid
                 diagnostics.push({
                     severity: DiagnosticSeverity.Error,
                     range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } },
-                    message: "VISIT must occur before any other commands. Subsequent VISITs can only appear before a new SCRAPE or SELECT.",
+                    message: "VISIT must occur before SCRAPE, SELECT, EXTRACT, or OUTPUT in a query.",
                     source: "goat-lsp"
                 })
             }
