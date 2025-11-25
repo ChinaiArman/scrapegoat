@@ -9,7 +9,7 @@ def main():
     """
     # SHEPHERD EXAMPLE
     # shepherd = Shepherd()
-    # shepherd.herd("example.goat")
+    # shepherd.herd("headless.goat")
 
     # LOOM EXAMPLE
     Loom().weave()

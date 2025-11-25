@@ -126,7 +126,7 @@ class NodeWrapper:
 		return flag in self.flags
 	
 	def __contains__(self, item) -> bool:
-		if type(item) != "str":
+		if type(item) != str:
 			return False
 
 		if item in f"<{self.tag_type}>":
@@ -239,7 +239,7 @@ class ControlPanel(VerticalGroup):
 
 	def update_url(self, url):
 		self.reset()
-		self.append_query(f"VISIT {url};")
+		self.append_query(f'VISIT "{url}";')
 
 	def append_query(self, query):
 		self.loom.changes_saved = False
