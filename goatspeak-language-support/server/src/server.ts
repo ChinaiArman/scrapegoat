@@ -120,7 +120,7 @@ documents.onDidChangeContent(change => {
         // Skip full-line comments
         if (trimmed.startsWith("[") && trimmed.endsWith("]")) return
         if (/^!Goatspeak:?/.test(trimmed)) return // <-- handles !Goatspeak or !Goatspeak:
-        
+
         // Strip inline comments outside quotes
         let inSingleQuote = false
         let inDoubleQuote = false
@@ -159,6 +159,15 @@ documents.onDidChangeContent(change => {
     connection.sendDiagnostics({ uri: change.document.uri, diagnostics })
 })
 
+enum State {
+    NONE,
+    VISIT,
+    SELECT,
+    SCRAPE,
+    EXTRACT,
+    OUTPUT
+}
+
 documents.onDidChangeContent(change => {
     const text = change.document.getText()
     const diagnostics: Diagnostic[] = []
@@ -169,12 +178,12 @@ documents.onDidChangeContent(change => {
     let hasOutput = false
     let visitLine = -1
 
-    let state = 0
+    let state = State.NONE
     let lastCommand = ""
     let hasRunCommand = false // Tracks if any non-VISIT command has executed
 
     const resetState = () => {
-        state = 0
+        state = State.NONE
         hasRunCommand = false
     }
 
@@ -215,6 +224,7 @@ documents.onDidChangeContent(change => {
                 })
             }
             lastCommand = "VISIT"
+            state = State.VISIT
             continue
         }
 
@@ -242,21 +252,21 @@ documents.onDidChangeContent(change => {
                         source: "goat-lsp"
                     })
                 }
-                state = 1
+                state = State.SELECT
                 break
             case "SCRAPE":
-                if (![0,1,2].includes(state)) {
-                    diagnostics.push({
-                        severity: DiagnosticSeverity.Error,
-                        range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } },
-                        message: "SCRAPE must follow start, SELECT, or another SCRAPE.",
-                        source: "goat-lsp"
-                    })
-                }
-                state = 2
+                // if (![].includes(state)) {
+                //     diagnostics.push({
+                //         severity: DiagnosticSeverity.Error,
+                //         range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } },
+                //         message: "SCRAPE must follow start, SELECT, or another SCRAPE.",
+                //         source: "goat-lsp"
+                //     })
+                // }
+                state = State.SCRAPE
                 break
             case "EXTRACT":
-                if (state !== 2) {
+                if (state !== State.SCRAPE) {
                     diagnostics.push({
                         severity: DiagnosticSeverity.Error,
                         range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } },
@@ -264,10 +274,10 @@ documents.onDidChangeContent(change => {
                         source: "goat-lsp"
                     })
                 }
-                state = 3
+                state = State.EXTRACT
                 break
             case "OUTPUT":
-                if (![2,3].includes(state)) {
+                if (![State.SCRAPE, State.EXTRACT].includes(state)) {
                     diagnostics.push({
                         severity: DiagnosticSeverity.Error,
                         range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } },
@@ -275,7 +285,7 @@ documents.onDidChangeContent(change => {
                         source: "goat-lsp"
                     })
                 }
-                state = 4
+                state = State.EXTRACT
                 break
         }
 
@@ -283,7 +293,7 @@ documents.onDidChangeContent(change => {
         if (firstWord !== "VISIT") hasRunCommand = true
 
         // Reset state at new SELECT or [query]
-        const nextLine = (lines[i+1] || "").trim()
+        const nextLine = (lines[i + 1] || "").trim()
         if (["SELECT"].includes(nextLine.split(/\s+/)[0]) || (nextLine.startsWith("[") && nextLine.endsWith("]"))) {
             resetState()
         }
