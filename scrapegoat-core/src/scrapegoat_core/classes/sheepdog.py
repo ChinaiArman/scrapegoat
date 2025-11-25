@@ -64,7 +64,7 @@ class HeadlessSheepdog(Sheepdog):
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 page = browser.new_page()
-                page.goto(url, wait_until="networkidle")
+                page.goto(url, wait_until="domcontentloaded")
                 return page.content()
         except Exception as e:
             if "Executable doesn't exist" in str(e):
