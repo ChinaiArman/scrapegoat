@@ -1,7 +1,7 @@
 """
 """
 
-from scrapegoat import Shepherd, Gardener, Sheepdog, HeadlessSheepdog
+from scrapegoat_core import Shepherd, Gardener, Sheepdog, HeadlessSheepdog
 from scrapegoat_loom import Loom
 
 def main():
