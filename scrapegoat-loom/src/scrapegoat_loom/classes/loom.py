@@ -8,6 +8,8 @@ from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll,
 from importlib.resources import files
 from platform import system
 from subprocess import Popen, PIPE
+from pathlib import Path
+import os
 
 from scrapegoat import Gardener, Sheepdog, HTMLNode
 
@@ -30,6 +32,14 @@ def write_to_clipboard(string:str) -> None:
 			pass
 		case _:
 			pass
+
+def save_to_file(file_path: str, script: str) -> None:
+	with open(file_path, "w") as f:
+		f.write(script)
+		f.close()
+
+def load_from_file(file_path: str) -> list[str]:
+	pass # TODO: Implement
 
 class NodeWrapper():
 	def __init__(self, html_node: HTMLNode, branch: TreeNode):
@@ -231,12 +241,14 @@ class ControlPanel(VerticalGroup):
 		self.append_query(f"VISIT {url};")
 
 	def append_query(self, query):
+		self.loom.changes_saved = False
 		wrapped = QueryWrapper(query)
 		self.query_nodes.append(wrapped)
 		self.query_one(ListView).append(wrapped.query_item)
 	
 	def add_node(self):
 		if self.current_node and self.current_node not in self.query_nodes:
+			self.loom.changes_saved = False
 			self.query_nodes.append(self.current_node)
 			query_list = self.query_one(ListView)
 
@@ -249,6 +261,7 @@ class ControlPanel(VerticalGroup):
 			self.contextual_button.variant = "error"
 
 	def append_attribute(self, attribute):
+		self.loom.changes_saved = False
 		self.current_node.append_attribute(attribute)
 		new_instr = self.current_node.get_retrieval_instructions()
 
@@ -257,6 +270,7 @@ class ControlPanel(VerticalGroup):
 		list_item.mount(Static(new_instr))
 
 	def append_flag(self, flag):
+		self.loom.changes_saved = False
 		self.current_node.append_flag(flag)
 		new_instr = self.current_node.get_retrieval_instructions()
 
@@ -265,6 +279,7 @@ class ControlPanel(VerticalGroup):
 		list_item.mount(Static(new_instr))
 
 	def remove_query(self, query):
+		self.loom.changes_saved = False
 		for item in self.query_nodes:
 			if item.get_retrieval_instructions() == query:
 				self.query_nodes.remove(item)
@@ -275,6 +290,7 @@ class ControlPanel(VerticalGroup):
 	
 	def remove_node(self):
 		if self.current_node and self.current_node in self.query_nodes:
+			self.loom.changes_saved = False
 			self.query_nodes.remove(self.current_node)
 			query_list = self.query_one(ListView)
 			
@@ -286,6 +302,7 @@ class ControlPanel(VerticalGroup):
 			self.contextual_button.variant = "success"
 
 	def remove_attribute(self, attribute):
+		self.loom.changes_saved = False
 		self.current_node.remove_attribute(attribute)
 		new_instr = self.current_node.get_retrieval_instructions()
 
@@ -294,6 +311,7 @@ class ControlPanel(VerticalGroup):
 		list_item.mount(Static(new_instr))
 
 	def remove_flag(self, flag):
+		self.loom.changes_saved = False
 		self.current_node.remove_flag(flag)
 		new_instr = self.current_node.get_retrieval_instructions()
 
@@ -494,19 +512,35 @@ class RemoveQueryModal(ModalScreen):
 		elif event.button.id == "remove-query-no":
 			self.dismiss(False)
 
-class Loom(App):
-	CSS_PATH = str(files("scrapegoat_loom").joinpath("gui-styles/tapestry.tcss"))
-	SCREENS = {"find": FindModal, "set-url": SetURLModal, "add-query": AppendQueryModal, "remove-query": RemoveQueryModal}
+class SaveAsModal(ModalScreen):
 	BINDINGS = [
-		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows the node search widget."),
-		Binding("ctrl+u", "toggle_set_url", "Set URL", tooltip="Shows the URL input widget."),
-		Binding("ctrl+a", "toggle_insert_query", "Append Query", tooltip="Appends a new scrape query."),
-		Binding("ctrl+r", "toggle_remove_query", "Remove Query", tooltip="Removes a query.")
+		("escape", "app.pop_screen", "Exit")
 	]
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.sub_title = "Tree Visualizer"
+
+	def compose(self):
+		yield Input(f"{str(Path.home())}{os.sep}script.goat", placeholder="file path", id="save-as-input")
+		yield Button("Save", id="save-as-confirm", variant="primary")
+
+	def on_button_pressed(self, _: Button.Pressed):
+		self.app.pop_screen()
+
+class Loom(App):
+	CSS_PATH = str(files("scrapegoat_loom").joinpath("gui-styles/tapestry.tcss"))
+	SCREENS = {"find": FindModal, "set-url": SetURLModal, "add-query": AppendQueryModal, "remove-query": RemoveQueryModal, "save-as": SaveAsModal}
+	BINDINGS = [
+		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows the node search widget."),
+		Binding("ctrl+u", "toggle_set_url", "Set URL", tooltip="Shows the URL input widget."),
+		Binding("ctrl+a", "toggle_insert_query", "Append Query", tooltip="Appends a new scrape query."),
+		Binding("ctrl+r", "toggle_remove_query", "Remove Query", tooltip="Removes a query."),
+		Binding("ctrl+s", "save", "Save", tooltip="Save the query.")
+	]
+
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.sub_title = "untitled.goat"
 		self.prev_url = ""
 		self.url = ""
 		self.has_tree = False
@@ -514,12 +548,16 @@ class Loom(App):
 		self.current_search_nodes = []
 		self.search_node_index = 0
 		self.selected_query = ""
+		self.save_path = ""
+		self.changes_saved = False
 
 	def get_system_commands(self, screen):
 		yield from super().get_system_commands(screen)
 		yield SystemCommand("Find", "Shows/Hides the node search widget.", self.toggle_search)
 		yield SystemCommand("Set URL", "Sets the URL for the Tree Visualizer to pull from.", self.action_toggle_set_url)
 		yield SystemCommand("Append Query", "Appends a new scrape query.", self.action_toggle_insert_query)
+		yield SystemCommand("Save As", "Save the query to a new file.", self.action_toggle_save_as)
+		yield SystemCommand("Save", "Save the query to a file.", self.action_save)
 
 	def _create_tree_from_root_node(self, node) -> Tree:
 		self.nodes = {}
@@ -563,6 +601,14 @@ class Loom(App):
 				return_list.append(node)
 		return return_list
 	
+	def _update(self):
+		if len(self.save_path) > 0:
+			self.sub_title = self.save_path.split(os.sep)[-1]
+		if not self.changes_saved:
+			if len(self.sub_title) > 0:
+				if self.sub_title[-1] != "*":
+					self.sub_title += "*"
+	
 	def action_add_remove_node(self) -> None:
 		if self.has_tree:
 			if self.control_panel and self.control_panel.current_node:
@@ -584,6 +630,16 @@ class Loom(App):
 	def action_toggle_remove_query(self) -> None:
 		if self.selected_query != None and self.selected_query[:5] != "VISIT" and self.has_tree:
 			self.push_screen("remove-query", lambda x: self.remove_query(x))
+
+	def action_toggle_save_as(self) -> None:
+		self.push_screen("save-as")
+
+	def action_save(self) -> None:
+		if len(self.save_path) > 0:
+			save_to_file(self.save_path, self.control_panel.get_query())
+			self.changes_saved = True
+		else:
+			self.push_screen("save-as")
 
 	def remove_query(self, confirm) -> None:
 		if confirm:
@@ -610,6 +666,11 @@ class Loom(App):
 			self.notify("The URL you entered could not be reached. Please check your internet connection and try again.", title="Could Not Resolve URL", severity="warning", timeout=10)
 		except MissingSchema:
 			self.notify("The URL you entered is invalid. Please try again.", title="Could Not Resolve URL", severity="warning", timeout=10)
+		except:
+			self.notify("An unknown error occured. Please try again.", title="Unknown Error", severity="error", timeout=10)
+
+	def on_mount(self) -> None:
+		self.set_interval(0.3, self._update)
 
 	def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
 		if self.has_tree:
@@ -619,6 +680,8 @@ class Loom(App):
 	def on_button_pressed(self, event: Button.Pressed) -> None:
 		if event.button.id == "url-confirm":
 			self.update_url()
+		elif event.button.id == "save-as-confirm":
+			self.action_save()
 
 		if self.has_tree:
 			if event.button.id == "node-add-remove":
@@ -656,6 +719,8 @@ class Loom(App):
 	def on_input_changed(self, event: Input.Changed) -> None:
 		if event.input.id == "url-input":
 			self.url = event.input.value
+		elif event.input.id == "save-as-input":
+			self.save_path = event.input.value
 
 		if self.has_tree:
 			if event.input.id == "find-node-input":
@@ -675,6 +740,7 @@ class Loom(App):
 		dom_tree = self._create_placeholder_tree()
 		ctrl = ControlPanel()
 		self.control_panel = ctrl
+		ctrl.loom = self
 
 		yield dom_tree
 		yield ctrl

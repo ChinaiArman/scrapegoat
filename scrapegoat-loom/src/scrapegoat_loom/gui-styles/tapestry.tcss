@@ -29,6 +29,20 @@ FindModal > Button {
 	margin: 1;
 }
 
+SaveAsModal {
+	layout: horizontal;
+}
+
+SaveAsModal > Input {
+	width: 75%;
+	margin: 1;
+}
+
+SaveAsModal > Button {
+	width: 15%;
+	margin: 1;
+}
+
 ListView {
 	margin: 0 1 1 1;
 }
