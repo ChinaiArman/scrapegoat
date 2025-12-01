@@ -533,6 +533,14 @@ class SaveAsModal(ModalScreen):
 		self.app.pop_screen()
 
 class Loom(App):
+	"""
+	The main Loom application class for visualizing HTMLTrees and constructing Goatspeak queries. Uses Textual for the GUI framework.
+
+	Attributes:
+		CSS_PATH (str): The path to the CSS file for styling the application.
+		SCREENS (dict): A dictionary mapping screen names to their corresponding ModalScreen classes.
+		BINDINGS (list): A list of key bindings for various actions within the application.
+	"""
 	CSS_PATH = str(files("scrapegoat_loom").joinpath("gui-styles/tapestry.tcss"))
 	SCREENS = {"find": FindModal, "set-url": SetURLModal, "add-query": AppendQueryModal, "remove-query": RemoveQueryModal, "save-as": SaveAsModal}
 	BINDINGS = [
@@ -545,6 +553,12 @@ class Loom(App):
 	]
 
 	def __init__(self, **kwargs):
+		"""
+		Initializes the Loom application.
+
+		Args:
+			**kwargs: Additional keyword arguments for the App superclass.
+		"""
 		super().__init__(**kwargs)
 		self.sub_title = "untitled.goat"
 		self.prev_url = ""
@@ -753,5 +767,13 @@ class Loom(App):
 
 		yield Footer()
 
-	def weave(self):
+	def weave(self) -> None:
+		"""
+		The main entry point to run the Loom application.
+
+		Usage:
+			```python
+			Loom().weave()
+			```
+		"""
 		self.run()
