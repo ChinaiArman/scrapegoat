@@ -20,10 +20,10 @@ class HTMLNode:
         Args:
             raw (str): The raw HTML string representing the element.
             tag_type (str): The type of the HTML tag (e.g., 'div', 'span').
-            has_data (bool): Indicates whether the node contains text data.
-            html_attributes (dict[str, any]): A dictionary of HTML attributes for the element.
-            body (str): The text content within the HTML element.
-            parent (HTMLNode, optional): The parent HTMLNode of this node. Defaults to None
+            has_data (bool): Indicates whether the node contains text data. Defaults to False.
+            html_attributes (dict[str, any]): A dictionary of HTML attributes for the element. Defaults to None.
+            body (str): The text content within the HTML element. Defaults to an empty string.
+            parent (HTMLNode, optional): The parent HTMLNode of this node. Defaults to None for root nodes.
         """
         self.id = str(uuid.uuid4())
         self.raw = raw
@@ -42,7 +42,7 @@ class HTMLNode:
         Converts the HTMLNode and its children into a dictionary representation.
 
         Args:
-            ignore_children (bool): If True, child nodes will not be included in the dictionary representation
+            ignore_children (bool): If True, child nodes will not be included in the dictionary representation. Defaults to False.
 
         Returns:
             dict: A dictionary representation of the HTMLNode.
@@ -164,8 +164,6 @@ class HTMLNode:
             result.append(row)
         return result
 
-
-
     def to_string(self) -> str:
         """
         Converts the HTMLNode to its string representation.
@@ -185,7 +183,7 @@ class HTMLNode:
         Converts the HTMLNode and its children back into an HTML string.
 
         Args:
-            indent (int): The indentation level for pretty-printing the HTML.
+            indent (int): The indentation level for pretty-printing the HTML. Defaults to 0.
 
         Returns:
             str: The HTML string representation of the HTMLNode.
@@ -255,7 +253,7 @@ class HTMLNode:
         Returns a list of descendant HTMLNodes that match the specified tag type and HTML attributes.
 
         Args:
-            tag_type (str, optional): The tag type to filter descendants. If None, all tag types are included.
+            tag_type (str, optional): The tag type to filter descendants. If None, all tag types are included. Defaults to None.
             **html_attributes: Key-value pairs of HTML attributes to filter descendants.
 
         Returns:
@@ -285,7 +283,7 @@ class HTMLNode:
 
         Args:
             key (str): The HTML attribute key to check.
-            value (str, optional): The HTML attribute value to check. If None, only the presence of the key is checked.
+            value (str, optional): The HTML attribute value to check. If None, only the presence of the key is checked. Defaults to None.
 
         Returns:
             bool: True if the attribute and value match, False otherwise.
@@ -303,7 +301,7 @@ class HTMLNode:
 
         Args:
             key (str): The HTML attribute key to check.
-            value (str, optional): The HTML attribute value to check. If None, only the presence of the key is checked.
+            value (str, optional): The HTML attribute value to check. If None, only the presence of the key is checked. Defaults to None.
 
         Returns:
             bool: True if the attribute and value match, False otherwise.
@@ -320,7 +318,7 @@ class HTMLNode:
 
         Args:
             key (str): The node attribute key to check.
-            value (str, optional): The node attribute value to check. If None, only the presence of the key is checked.
+            value (str, optional): The node attribute value to check. If None, only the presence of the key is checked. Defaults to None.
 
         Returns:
             bool: True if the attribute and value match, False otherwise.
@@ -374,7 +372,7 @@ class HTMLNode:
 
         Args:
             key (str): The node attribute key to check.
-            value (str, optional): The node attribute value to check. If None, only the presence of the key is checked.
+            value (str, optional): The node attribute value to check. If None, only the presence of the key is checked. Defaults to None.
 
         Returns:
             bool: True if the attribute and value match, False otherwise.
@@ -447,10 +445,10 @@ class HTMLNode:
         Sets the extraction instructions for the HTMLNode.
 
         Args:
-            fields (list, optional): A list of fields to extract. If None, all fields
-            ignore_children (bool): If True, child nodes will be ignored during extraction.
-            ignore_grandchildren (bool): If True, grandchild nodes will be ignored during extraction.
-            table (bool): If True, the node will be treated as a table for extraction.
+            fields (list, optional): A list of fields to extract. If None, all fields will be extracted. Defaults to None.
+            ignore_children (bool): If True, child nodes will be ignored during extraction. Defaults to False.
+            ignore_grandchildren (bool): If True, grandchild nodes will be ignored during extraction. Defaults to False.
+            table (bool): If True, the node will be treated as a table for extraction. Defaults to False.
         """
         self.extract_fields = fields or None
         self.extract_flags = {"ignore_children": ignore_children, "ignore_grandchildren": ignore_grandchildren, "table": table}
