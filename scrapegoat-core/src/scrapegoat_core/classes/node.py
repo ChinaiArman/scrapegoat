@@ -6,11 +6,24 @@ import uuid
 
 class HTMLNode:
     """
+    The HTMLNode is a data class used to represent an HTML element within the HTMLNode tree structure.
+
+    Attributes:
+        VOID_TAGS (set): A set of HTML tag types that are considered void elements (self-closing tags).
     """
     VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 
     def __init__(self, raw: str, tag_type: str, has_data: bool = False, html_attributes: dict[str, any] = None, body: str = "", parent=None):
         """
+        Initializes an instance of the HTMLNode class.
+
+        Args:
+            raw (str): The raw HTML string representing the element.
+            tag_type (str): The type of the HTML tag (e.g., 'div', 'span').
+            has_data (bool): Indicates whether the node contains text data.
+            html_attributes (dict[str, any]): A dictionary of HTML attributes for the element.
+            body (str): The text content within the HTML element.
+            parent (HTMLNode, optional): The parent HTMLNode of this node. Defaults to None
         """
         self.id = str(uuid.uuid4())
         self.raw = raw
@@ -26,6 +39,13 @@ class HTMLNode:
     
     def to_dict(self, ignore_children=False) -> str:
         """
+        Converts the HTMLNode and its children into a dictionary representation.
+
+        Args:
+            ignore_children (bool): If True, child nodes will not be included in the dictionary representation
+
+        Returns:
+            dict: A dictionary representation of the HTMLNode.
         """
         if self.extract_flags["table"]:
             if self.tag_type != "table":
@@ -148,6 +168,10 @@ class HTMLNode:
 
     def to_string(self) -> str:
         """
+        Converts the HTMLNode to its string representation.
+
+        Returns:
+            str: The string representation of the HTMLNode.
         """
         return str(self.to_dict())
     
@@ -158,6 +182,13 @@ class HTMLNode:
 
     def to_html(self, indent=0) -> str:
         """
+        Converts the HTMLNode and its children back into an HTML string.
+
+        Args:
+            indent (int): The indentation level for pretty-printing the HTML.
+
+        Returns:
+            str: The HTML string representation of the HTMLNode.
         """
         html_attribute_string = " ".join(f'{k}="{v}"' for k, v in self.html_attributes.items())
         if html_attribute_string:
@@ -183,20 +214,34 @@ class HTMLNode:
         return result
 
     def __str__(self):
+        """
+        """
         return self.to_string()
     
-    def get_parent(self):
+    def get_parent(self) -> "HTMLNode":
         """
+        Returns the parent HTMLNode.
+
+        Returns:
+            HTMLNode: The parent node.
         """
         return self.parent
     
-    def get_children(self):
+    def get_children(self) -> list["HTMLNode"]:
         """
+        Returns the list of child HTMLNodes.
+
+        Returns:
+            list[HTMLNode]: The list of child nodes.
         """
         return self.children
     
-    def get_ancestors(self):
+    def get_ancestors(self) -> list["HTMLNode"]:
         """
+        Returns a list of ancestor HTMLNodes, starting from the immediate parent up to the root.
+
+        Returns:
+            list[HTMLNode]: A list of ancestor nodes.
         """
         ancestors = []
         current = self.parent
@@ -205,8 +250,16 @@ class HTMLNode:
             current = current.parent
         return ancestors
     
-    def get_descendants(self, tag_type: str = None, **html_attributes) -> list:
+    def get_descendants(self, tag_type: str = None, **html_attributes) -> list["HTMLNode"]:
         """
+        Returns a list of descendant HTMLNodes that match the specified tag type and HTML attributes.
+
+        Args:
+            tag_type (str, optional): The tag type to filter descendants. If None, all tag types are included.
+            **html_attributes: Key-value pairs of HTML attributes to filter descendants.
+
+        Returns:
+            list[HTMLNode]: A list of matching descendant nodes.
         """
         descendants = []
         for child in self.children:
@@ -215,8 +268,12 @@ class HTMLNode:
             descendants.extend(child.get_descendants(tag_type, **html_attributes))
         return descendants
     
-    def preorder_traversal(self):
+    def preorder_traversal(self) -> "HTMLNode": # type: ignore
         """
+        Generator that yields nodes in a preorder traversal of the HTMLNode tree.
+
+        Yields:
+            HTMLNode: The next node in the preorder traversal.
         """
         yield self
         for child in self.children:
@@ -224,6 +281,14 @@ class HTMLNode:
 
     def like_html_attribute(self, key, value=None) -> bool:
         """
+        Uses a fuzzy match to check for the presence of an HTML attribute and its value.
+
+        Args:
+            key (str): The HTML attribute key to check.
+            value (str, optional): The HTML attribute value to check. If None, only the presence of the key is checked.
+
+        Returns:
+            bool: True if the attribute and value match, False otherwise.
         """
         value = value.lower() if value is not None else value
         if value is None:
@@ -234,6 +299,14 @@ class HTMLNode:
 
     def has_html_attribute(self, key, value=None) -> bool:
         """
+        Uses an exact match to check for the presence of an HTML attribute and its value.
+
+        Args:
+            key (str): The HTML attribute key to check.
+            value (str, optional): The HTML attribute value to check. If None, only the presence of the key is checked.
+
+        Returns:
+            bool: True if the attribute and value match, False otherwise.
         """
         if value is None:
             return key in self.html_attributes
@@ -243,6 +316,14 @@ class HTMLNode:
     
     def like_attribute(self, key, value=None) -> bool:
         """
+        Uses a fuzzy match to check for the presence of a node attribute and its value.
+
+        Args:
+            key (str): The node attribute key to check.
+            value (str, optional): The node attribute value to check. If None, only the presence of the key is checked.
+
+        Returns:
+            bool: True if the attribute and value match, False otherwise.
         """
         value = value.lower() if value is not None else value
         if key == "tag_type":
@@ -289,6 +370,14 @@ class HTMLNode:
     
     def has_attribute(self, key, value=None) -> bool:
         """
+        Uses an exact match to check for the presence of a node attribute and its value.
+
+        Args:
+            key (str): The node attribute key to check.
+            value (str, optional): The node attribute value to check. If None, only the presence of the key is checked.
+
+        Returns:
+            bool: True if the attribute and value match, False otherwise.
         """
         if key == "tag_type":
             if value is None:
@@ -332,24 +421,43 @@ class HTMLNode:
             return self.raw == value
         return False
     
-    def is_descendant_of(self, tag_type) -> bool:
+    def is_descendant_of(self, tag_type: str) -> bool:
         """
+        Checks if the current node is a descendant of a node with the specified tag type.
+
+        Args:
+            tag_type (str): The tag type to check against.
+
+        Returns:
+            bool: True if the current node is a descendant of the specified tag type, False otherwise
         """
         return any(ancestor.tag_type == tag_type for ancestor in self.get_ancestors())
     
-    def set_retrieval_instructions(self, instruction: str):
+    def set_retrieval_instructions(self, instruction: str) -> None:
         """
+        Sets the retrieval instructions for the HTMLNode.
+
+        Args:
+            instruction (str): The retrieval instruction string.
         """
         self.retrieval_instructions = instruction
 
-    def set_extract_instructions(self, fields: list=None, ignore_children=False, ignore_grandchildren=False, table=False):
+    def set_extract_instructions(self, fields: list=None, ignore_children=False, ignore_grandchildren=False, table=False) -> None:
         """
+        Sets the extraction instructions for the HTMLNode.
+
+        Args:
+            fields (list, optional): A list of fields to extract. If None, all fields
+            ignore_children (bool): If True, child nodes will be ignored during extraction.
+            ignore_grandchildren (bool): If True, grandchild nodes will be ignored during extraction.
+            table (bool): If True, the node will be treated as a table for extraction.
         """
         self.extract_fields = fields or None
         self.extract_flags = {"ignore_children": ignore_children, "ignore_grandchildren": ignore_grandchildren, "table": table}
 
-    def clear_extract_instructions(self):
+    def clear_extract_instructions(self) -> None:
         """
+        Clears any extraction instructions set on the HTMLNode.
         """
         self.extract_fields = None
         self.extract_flags = None

@@ -60,6 +60,14 @@ class Sheepdog:
     
     def getter(self, url: str, **kwargs) -> str:
         """
+        Fetches HTML content from the given URL using the requests library.
+
+        Args:
+            url (str): The URL to fetch HTML content from.
+            **kwargs: Additional keyword arguments to pass to the requests.get() method.
+
+        Returns:
+            str: The fetched HTML content.
         """
         headers = kwargs.pop('headers', self.DEFAULT_HEADERS)
         response = requests.get(url, headers=headers, **kwargs)
@@ -92,6 +100,7 @@ class HeadlessSheepdog(Sheepdog):
 
         Args:
             url (str): The URL to fetch HTML content from.
+            **kwargs: Additional keyword arguments (not used in this implementation).
 
         Returns:
             str: The fetched HTML content.
