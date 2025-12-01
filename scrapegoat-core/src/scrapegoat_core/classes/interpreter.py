@@ -315,7 +315,7 @@ class ScrapeSelectParser(Parser):
             tuple: A tuple containing the parsed GrazeCommand object and the updated index.
 
         Warning:
-            Raises GoatspeakInterpreterException if the command syntax is invalid.
+            Raises GoatspeakInterpreterException if the scrape syntax is invalid.
         """
         action = tokens[index].value
         index += 1
@@ -415,7 +415,7 @@ class OutputParser(Parser):
             tuple: A tuple containing the parsed DeliverCommand object and the updated index.
 
         Warning:
-            Raises GoatspeakInterpreterException if the command syntax is invalid.
+            Raises GoatspeakInterpreterException if the output syntax is invalid.
         """
         index += 1
 
@@ -459,7 +459,7 @@ class VisitParser(Parser):
             tuple: A tuple containing the parsed FetchCommand object and the updated index.
 
         Warning:
-            Raises GoatspeakInterpreterException if the command syntax is invalid.
+            Raises GoatspeakInterpreterException if the visit syntax is invalid.
         """
         index += 1
 
@@ -545,7 +545,7 @@ class Interpreter:
             list[GoatspeakBlock]: A list of GoatspeakBlock objects representing the interpreted
 
         Warning:
-            Raises GoatspeakInterpreterException if the command syntax is invalid.
+            Raises GoatspeakInterpreterException if the goatspeak syntax is invalid.
         """
         tokens = self.tokenizer.tokenize(query)
         instructions = []
