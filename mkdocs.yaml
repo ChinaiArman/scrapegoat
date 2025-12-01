@@ -44,17 +44,19 @@ nav:
       - Advanced Features: tutorials/advanced-features.md
   - Core:
       - Overview: core/index.md
-      - Block: core/block.md
-      - Command: core/command.md
-      - Conditions: core/conditions.md
-      - Gardener: core/gardener.md
-      - Goat: core/goat.md
-      - Interpreter: core/interpreter.md
-      - Milkmaid: core/milkmaid.md
-      - Milkman: core/milkman.md
-      - Node: core/node.md
-      - Sheepdog: core/sheepdog.md
-      - Shepherd: core/shepherd.md
+      - Classes:
+          - Block: core/classes/block.md
+          - Command: core/classes/command.md
+          - Conditions: core/classes/conditions.md
+          - Gardener: core/classes/gardener.md
+          - Goat: core/classes/goat.md
+          - Interpreter: core/classes/interpreter.md
+          - Milkmaid: core/classes/milkmaid.md
+          - Milkman: core/classes/milkman.md
+          - Node: core/classes/node.md
+          - Sheepdog: core/classes/sheepdog.md
+          - Shepherd: core/classes/shepherd.md
+      - Exceptions: core/exceptions.md
   - Loom:
       - Overview: loom/index.md
       - Loom: loom/loom.md

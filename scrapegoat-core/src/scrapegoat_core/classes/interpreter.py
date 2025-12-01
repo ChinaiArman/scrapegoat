@@ -560,7 +560,13 @@ class Interpreter:
             if parser is None:
                 raise GoatspeakInterpreterException(f"Unknown action '{token.value}' at token {token}")
             
-            instruction, index = parser.parse(tokens, index)
+            try:
+                instruction, index = parser.parse(tokens, index)
+            except IndexError:
+                raise GoatspeakInterpreterException(f"Missing semicolon at end of command starting with token {token}")
+            except Exception as e:
+                raise GoatspeakInterpreterException(f"Error parsing command starting with token {token}: {str(e)}")
+            
             instructions.append(instruction)
             instructions, goatspeak_blocks = self._manage_interpreter_state(instructions, goatspeak_blocks)
 
