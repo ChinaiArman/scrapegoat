@@ -13,9 +13,18 @@ from .sheepdog import Sheepdog
 
 class Shepherd:
     """
+    The master class that orchestrates the query to data scraping process. This class delegates its job to subclasses like the Gardener, Sheepdog, Goat, Milkmaid, and Milkman. All subclasses can be extended and passed into the Shepherd constructor to customize its behavior.
     """
     def __init__(self, gardener=None, sheepdog=None, goat=None, milkmaid=None, milkman=None):
         """
+        The Shepherd class constructor.
+
+        Args:
+            gardener (Gardener, optional): An instance of the Gardener class. Defaults to a new Gardener instance.
+            sheepdog (Sheepdog, optional): An instance of the Sheepdog class. Defaults to a new Sheepdog instance.
+            goat (Goat, optional): An instance of the Goat class. Defaults to a new Goat instance.
+            milkmaid (Milkmaid, optional): An instance of the Milkmaid class. Defaults to a new Milkmaid instance.
+            milkman (Milkman, optional): An instance of the Milkman class. Defaults to a new Milkman instance.
         """
         self.gardener = gardener if gardener else Gardener()
         self.interpreter = Interpreter()
@@ -26,6 +35,18 @@ class Shepherd:
     
     def herd(self, query: str) -> list:
         """
+        Executes the full data scraping process based on the provided goatspeak query. Accepts either a goatspeak string or a file path to a goatspeak file.
+
+        Args:
+            query (str): A goatspeak string or a file path to a goatspeak file.
+        
+        Returns:
+            list: A list of scraped HTMLNode results.
+
+        Usage:
+            ```python
+            results = Shepherd().herd("VISIT 'http://example.com'; SCRAPE 1 p;")
+            ```
         """
         goatspeak = self._convert_query_to_goatspeak(query)
 
@@ -78,19 +99,60 @@ class Shepherd:
                 
         return list(dict.fromkeys(results))
     
-    def herd_from_node(self, query: str, root) -> list:
+    def herd_from_node(self, query: str, root: "HTMLNode") -> list: # type: ignore
         """
+        Executes a goatspeak query starting from a given HTMLNode.
+
+        Args:
+            query (str): A goatspeak string or a file path to a goatspeak file.
+            root (HTMLNode): The starting HTMLNode from which to execute the query.
+
+        Returns:
+            list: A list of scraped HTMLNode results.
+
+        Usage:
+            ```python
+            root_node = HTMLNode(...)  # Assume this is an initialized HTMLNode
+            results = Shepherd().herd_from_node("SCRAPE 1 p;", root_node)
+            ```
         """
         return self._local_herd(query, root=root)
     
     def herd_from_html(self, query: str, html: str) -> list:
         """
+        Grows an HTMLNode tree from raw HTML and executes a goatspeak query on it.
+
+        Args:
+            query (str): A goatspeak string or a file path to a goatspeak file.
+            html (str): The raw HTML string to be parsed.
+
+        Returns:
+            list: A list of scraped HTMLNode results.
+
+        Usage:
+            ```python
+            html_content = "<html><body><p>Hello, World!</p></body></html>"
+            results = Shepherd().herd_from_html("SCRAPE 1 p;", html_content)
+            ```
         """
         root = self.gardener.grow_tree(html)
         return self._local_herd(query, root=root)
     
     def herd_from_url(self, query: str, url: str) -> list:
         """
+        Fetches HTML from a URL, grows an HTMLNode tree, and executes a goatspeak query on it.
+
+        Args:
+            query (str): A goatspeak string or a file path to a goatspeak file.
+            url (str): The URL from which to fetch HTML content.
+
+        Returns:
+            list: A list of scraped HTMLNode results.
+
+        Usage:
+            ```python
+            results = Shepherd().herd_from_url("SCRAPE 1 p;", "http://example.com")
+            ```
         """
         html = self.sheepdog.fetch(url)
         root = self.gardener.grow_tree(html)
