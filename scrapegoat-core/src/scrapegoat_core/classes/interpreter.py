@@ -151,7 +151,7 @@ class Tokenizer:
 
 class Parser(ABC):
     """
-    Abstract base class for parsers that convert tokens into command objects.
+    Abstract base class for all parsers to inherit from. Defines the parse method that must be implemented by subclasses.
     """
     @abstractmethod
     def parse(self, tokens: list[Token], index) -> tuple:
