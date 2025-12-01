@@ -9,3 +9,4 @@
       filters:
         - "!^_"
         - "^__init__$"
+        - "!^handle_"
