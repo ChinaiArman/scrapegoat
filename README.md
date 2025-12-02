@@ -138,9 +138,8 @@ To get started, check out our [installation guide](installation.md) and start wr
 
 ## Authors
 
-- Arman Chinai
-    - 
-    Responsible for developing the core architecture, designing the Goatspeak language, and implementing the main features of Scrapegoat.
+### Arman Chinai
+Responsible for developing the core architecture, designing the Goatspeak language, and implementing the main features of Scrapegoat.
 <p align="center">
     <!-- LinkedIn -->
     <a href="https://www.linkedin.com/in/armanchinai/" target="_blank">
@@ -160,12 +159,13 @@ To get started, check out our [installation guide](installation.md) and start wr
     </a>
 </p>
 
-- Quinn Thompson
-    -
-    Responsible for developing the Loom extension, creating the graphical interface for building Goatspeak queries, and enhancing user experience.
-- Lucas Angelozzi 
-    -
-    Developed the LSP and linter extension for Goatspeak, improving the development experience for users writing Goatspeak scripts.
+### Quinn Thompson
+
+Responsible for developing the Loom extension, creating the graphical interface for building Goatspeak queries, and enhancing user experience.
+
+### Lucas Angelozzi 
+
+Developed the LSP and linter extension for Goatspeak, improving the development experience for users writing Goatspeak scripts.
 
 ## Acknowledgements
 
