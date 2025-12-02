@@ -1,4 +1,5 @@
 from requests.exceptions import HTTPError, MissingSchema
+from scrapegoat_core.exceptions import ScrapegoatFetchException, ScrapegoatPlaywrightException
 from textual.app import App, SystemCommand
 from textual.screen import ModalScreen
 from textual.binding import Binding
@@ -702,6 +703,10 @@ class Loom(App):
 			self.notify("The URL you entered could not be reached. Please check your internet connection and try again.", title="Could Not Resolve URL", severity="warning", timeout=10)
 		except MissingSchema:
 			self.notify("The URL you entered is invalid. Please try again.", title="Could Not Resolve URL", severity="warning", timeout=10)
+		except ScrapegoatPlaywrightException:
+			self.notify("Playwright is not installed. Please install it with 'pip install playwright'.", title="Module Not Found", severity="information", timeout=10)
+		except ScrapegoatFetchException as e:
+			self.notify(f"{e}", title="Playwright Error", severity="error", timeout=10)
 		except:
 			self.notify("An unknown error occured. Please try again.", title="Unknown Error", severity="error", timeout=10)
 
