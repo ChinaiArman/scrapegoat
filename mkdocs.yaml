@@ -46,8 +46,7 @@ plugins:
             - scrapegoat-loom/src
 
 nav:
-  - Welcome to Scrapegoat: index.md
-  - Why use Scrapegoat?: why-scrapegoat.md
+  - Introduction: index.md
   - Installation: installation.md
   - Tutorials:
       - Core Tutorial: tutorials/core-tutorial.md
