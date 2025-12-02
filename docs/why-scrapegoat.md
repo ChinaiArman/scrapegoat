@@ -2,12 +2,14 @@
 
 ## The Problem with Webscraping Today
 The webscraping experience is awful; it has been for a long time.
-Scrapers are brittle, repetitive, and full of boilerplate. Even simple tasks require dozens of lines of glue code just to fetch a page, parse it, and walk the DOM.
+Scrapers are brittle, repetitive, and full of boilerplate.
+Even simple tasks require dozens of lines of glue code just to fetch a page, parse it, and walk the DOM.
 
 Imagine if, everytime you wanted to pull data from a database, you had to write code to connect to the database, write code to traverse the table and find your data, and then parse the results into a usable format.
 Nobody would put up with that, yet that's exactly what we do when scraping the web.
 
-Below is an example of the code we dreadfully write to scrape a simple web page using Python and BeautifulSoup. This code fetches a recipe page and extracts the list of ingredients into a CSV file:
+Below is an example of the code we dreadfully write to scrape a simple web page using Python and BeautifulSoup.
+This code fetches a recipe page and extracts the list of ingredients into a CSV file:
 !!! danger
         import requests
         import csv
@@ -60,7 +62,8 @@ Scrapegoat started with a question: *Why can't we query web pages like we query 
 Scrapegoat is designed with the query at the center. The goal of Scrapegoat is simple: you shouldn't have to write boilerplate, string libraries together, or even think about the underlying plumbing.
 With Scrapegoat, you write queries that express *what* data you want to extract, and Scrapegoat takes care of *how* to get it.
 
-Below is that same example from earlier. However, this time with a query, the Scrapegoat way:
+Below is that same example from earlier.
+However, this time with a query, the Scrapegoat way:
 !!! success
         VISIT "https://www.foodnetwork.com/recipes/food-network-kitchen/baked-feta-pasta-9867689";
         SCRAPE span IF @class="o-Ingredients__a-Ingredient--CheckboxLabel" IF body != "Deselect All";
@@ -76,7 +79,8 @@ With only 5 commands, Goatspeak allows you to fetch pages, navigate the DOM, ext
 
 However, if building queries isn't your style, Scrapegoat also provides an entirely code-free experience through our Loom extension, which offers a graphical interface for building and running Goatspeak queries.
 
-Furthermore, Goatspeak queries are designed to be portable and reusable. Simply save a query into a `.goat` file, and it can be shared and run anywhere Scrapegoat is installed.
+Furthermore, Goatspeak queries are designed to be portable and reusable.
+Simply save a query into a `.goat` file, and it can be shared and run anywhere Scrapegoat is installed.
 
 ## Enhanced Development Experience with Linter and LSP
 To further improve your development experience with Scrapegoat, we offer a linter and Language Server Protocol (LSP) extension.

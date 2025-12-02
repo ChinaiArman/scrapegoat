@@ -1,18 +1,16 @@
 # Installation
 
-Welcome to the installation guide! Follow the steps below to set up the software on your system.
+Welcome to the installation guide!
+This page will walk you through how to install all of the features from the Scrapegoat ecosystem.
+Follow the steps below to set up the software on your system.
 
 ## Prerequisites
 Before you begin, ensure that you have the following prerequisites installed on your system:
 
 * [Python](https://www.python.org/downloads/) (version 3.7 or higher)
 * [pip](https://pip.pypa.io/en/stable/installation/)
-* [Playwright](https://playwright.dev/python/docs/intro)
+* [Playwright](https://playwright.dev/python/docs/intro) (Optional by default, required for JavaScript rendering support)
 
-To install Playwright, run the following command:
-```bash
-pip install playwright
-```
 !!! tip
     You can check your Python version by running:
 
@@ -37,7 +35,8 @@ To verify that the installation was successful, you can run the following comman
 ```bash
 scrapegoat -h
 ```
-This should display the help message for the Scrapegoat command-line interface. If you see the help message, congratulations! You have successfully installed Scrapegoat.
+This should display the help message for the Scrapegoat command-line interface.
+If you see the help message, congratulations! You have successfully installed Scrapegoat.
 
 !!! success
         usage: scrapegoat [-h] [-v] [-j] [file_or_query]
@@ -72,7 +71,8 @@ To verify that Loom was installed successfully, you can run the following comman
 ```bash
 loom -h
 ```
-This should display the help message for the Loom command-line interface. If you see the help message, you have successfully installed Loom.
+This should display the help message for the Loom command-line interface.
+If you see the help message, you have successfully installed Loom.
 
 !!! success
         usage: loom [-h]
@@ -113,4 +113,6 @@ pip install .
 ```
 
 ## Conclusion
-You have now successfully installed Scrapegoat and its optional extensions. You can start using Scrapegoat for your web scraping needs. For more information on how to use Scrapegoat, visit [Getting Started](getting-started.md) to begin using Scrapegoat.
+You have now successfully installed Scrapegoat and its optional extensions.
+You can start using Scrapegoat for your web scraping needs.
+For more information on how to use Scrapegoat, visit [Getting Started](getting-started.md) to begin using Scrapegoat.
