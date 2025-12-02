@@ -91,7 +91,7 @@ With Scrapegoat, you write queries that express *what* data you want to extract,
     You can even run our package through the CLI!
 
     ````bash
-    scrapegoat example.goat
+    scrapegoat path/to/file.goat
     ````
 
 ## Goatspeak: The Querying Language for Scrapegoat

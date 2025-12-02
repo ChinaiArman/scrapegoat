@@ -85,7 +85,7 @@ results = Shepherd().herd(query)
 You can even run our package through the CLI!
 
 ````bash
-scrapegoat {path/to/file.goat}
+scrapegoat path/to/file.goat
 ````
 
 ## Goatspeak: The Querying Language for Scrapegoat
