@@ -1,6 +1,5 @@
 # Introduction
 
-## Welcome to Scrapegoat
 Welcome to the Scrapegoat documentation!
 This documentation will guide you through all there is to know about Scrapegoat, from installation to advanced usage.
 
