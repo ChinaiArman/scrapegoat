@@ -140,3 +140,11 @@ Our documentation goes over extensively how and where to add new features to Scr
 Building webscrapers with Scrapegoat becomes a joy, not a chore.
 To get started, check out our [installation guide](installation.md) and start writing your first Goatspeak query today!
 
+## Useful Links
+
+Below are all of Scrapegoat's links in one place for your convenience:
+
+- [GitHub Repository](https://github.com/ChinaiArman/scrapegoat)
+- [Scrapegoat Core PyPI Package](https://pypi.org/project/scrapegoat-core/)
+- [Scrapegoat Loom PyPI Package](https://pypi.org/project/scrapegoat-loom/)
+- [License](https://github.com/ChinaiArman/scrapegoat/blob/main/LICENSE)

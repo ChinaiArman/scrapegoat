@@ -5,6 +5,16 @@ This is where all the code and documentation for Scrapegoat lives.
 
 Read on to discover how Scrapegoat can revolutionize your webscraping experience.
 
+## Quick Links
+
+Is this page not what you are looking for?
+Below are all of Scrapegoat's links in one place for your convenience:
+
+- [Documentation Home](https://chinaiarman.github.io/scrapegoat/)
+- [Scrapegoat Core PyPI Package](https://pypi.org/project/scrapegoat-core/)
+- [Scrapegoat Loom PyPI Package](https://pypi.org/project/scrapegoat-loom/)
+- [License](https://github.com/ChinaiArman/scrapegoat/blob/main/LICENSE)
+
 ## The Problem with Webscraping Today
 The webscraping experience is awful; it has been for a long time.
 Scrapers are brittle, repetitive, and full of boilerplate.
