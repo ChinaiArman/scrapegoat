@@ -2,7 +2,7 @@ from requests.exceptions import HTTPError, MissingSchema
 from textual.app import App, SystemCommand
 from textual.screen import ModalScreen
 from textual.binding import Binding
-from textual.widgets import Header, Footer, Tree, Button, Static, Select, Collapsible, Checkbox, Input, ListView, ListItem, RadioSet, ContentSwitcher, Label
+from textual.widgets import Header, Footer, Tree, Button, Static, Select, Collapsible, Checkbox, Input, ListView, ListItem, RadioSet, ContentSwitcher, Label, Log
 from textual.widgets.tree import TreeNode
 from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll, Grid
 from importlib.resources import files
@@ -11,7 +11,7 @@ from subprocess import Popen, PIPE
 from pathlib import Path
 import os
 
-from scrapegoat_core import Gardener, Sheepdog, HTMLNode
+from scrapegoat_core import Gardener, HeadlessSheepdog, Sheepdog, HTMLNode
 
 NodeAttributes = (
 	"tag_type", "id", "has_data", "body", "parent", "children"
@@ -125,7 +125,7 @@ class NodeWrapper():
 		return flag in self.flags
 	
 	def __contains__(self, item) -> bool:
-		if type(item) != "str":
+		if type(item) != str:
 			return False
 
 		if item in f"<{self.tag_type}>":
@@ -134,13 +134,17 @@ class NodeWrapper():
 		if item in self.node.body:
 			return True
 		
-		for html_attribute in self.node.html_attributes.keys():
-			if item in f"@{html_attribute}={self.node.html_attributes[html_attribute]}":
-				return True
+		if item.startswith("@"):
+			for html_attribute in self.node.html_attributes.keys():
+				if item.startswith(f"@{html_attribute}="):
+					l = len(f"@{html_attribute}=")
+					return item[l:] in self.node.html_attributes[html_attribute]
 			
-		for node_attribute in NodeAttributes:
-			if item in f"#{node_attribute}={self.node.to_dict()[node_attribute]}":
-				return True
+		if item.startswith("#"):
+			for node_attribute in NodeAttributes:
+				if item.startswith(f"#{node_attribute}="):
+					l = len(f"#{node_attribute}=")
+					return item[l:] in self.node.to_dict()[node_attribute]
 		
 		return False
 
@@ -224,7 +228,7 @@ class ControlPanel(VerticalGroup):
 			for html_attribute in node.node.html_attributes:
 				index = f"html-attribute-{hash(f"{node.id}-{html_attribute.replace("@", "")}")}"
 
-				self.node_details["node_desc"].append(ListItem(Static(f"{html_attribute}: {node.node.html_attributes[html_attribute]}")))
+				self.node_details["node_desc"].append(ListItem(Static(f"{html_attribute}: {node.node.html_attributes[html_attribute]}"), classes="node-desc-item"))
 				self.node_details["queried_attributes"].mount(
 					Checkbox(f"{html_attribute}", id=index, value=self.current_node.check_query_attribute(html_attribute))
 				)
@@ -343,9 +347,13 @@ class FindModal(ModalScreen):
 		super().__init__(**kwargs)
 
 	def compose(self):
-		yield Input(placeholder="Search...", id="find-node-input")
-		yield Button("Next", id="find-node-next", variant="primary")
-		yield Button("Prev", id="find-node-prev", variant="primary")
+		with HorizontalGroup():
+			yield Input(placeholder="Search...", id="find-node-input")
+			yield Button("Next", id="find-node-next", variant="primary")
+			yield Button("Prev", id="find-node-prev", variant="primary")
+
+		with HorizontalGroup():
+			yield Label("Use #<attribute>=<content> to search for the content of a node attribute.\nUse @<attribute>=<content> to search for the content of an HTML attribute.\nUse '<' and '>' to search for specific HTML tags (ex: \"<p>\")")
 
 class SetURLModal(ModalScreen):
 	BINDINGS = [
@@ -361,6 +369,7 @@ class SetURLModal(ModalScreen):
 	def compose(self):
 		yield Input(placeholder="https://www.example.com/data", id="url-input")
 		yield self.button
+		yield Checkbox("Use Headless", value=False, id="url-headless-check")
 	
 	def on_button_pressed(self, _):
 		self.prev_url = self.curr_url
@@ -544,6 +553,7 @@ class Loom(App):
 		self.sub_title = "untitled.goat"
 		self.prev_url = ""
 		self.url = ""
+		self.url_req_headless = False
 		self.has_tree = False
 		self.nodes = {}
 		self.current_search_nodes = []
@@ -652,7 +662,13 @@ class Loom(App):
 			return
 
 		try:
-			html = Sheepdog().fetch(self.url)
+			html: str = None
+
+			if not self.url_req_headless:
+				html = Sheepdog().fetch(self.url)
+			elif self.url_req_headless:
+				html = HeadlessSheepdog().fetch(self.url)
+
 			root = Gardener().grow_tree(html)
 
 			prev_tree = self.query_one(Tree)
@@ -705,6 +721,9 @@ class Loom(App):
 					self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
+		if event.checkbox.id == "url-headless-check":
+			self.url_req_headless = event.value
+
 		if self.has_tree:
 			if "flag" == event.checkbox.id[0:4]:
 				if event.checkbox.value:

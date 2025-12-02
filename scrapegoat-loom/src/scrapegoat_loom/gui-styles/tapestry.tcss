@@ -16,17 +16,21 @@ ControlPanel {
 }
 
 FindModal {
-	layout: horizontal;
+	layout: vertical;
 }
 
-FindModal > Input {
+FindModal > HorizontalGroup > Input {
 	width: 65%;
 	margin: 1;
 }
 
-FindModal > Button {
+FindModal > HorizontalGroup > Button {
 	width: 15%;
 	margin: 1;
+}
+
+FindModal > HorizontalGroup {
+	background: red 0%;
 }
 
 SaveAsModal {
@@ -57,6 +61,11 @@ SetURLModal > Input {
 }
 
 SetURLModal > Button {
+	width: 13%;
+	margin: 1;
+}
+
+SetURLModal > Checkbox {
 	width: 15%;
 	margin: 1;
 }
