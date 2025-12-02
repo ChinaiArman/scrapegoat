@@ -9,7 +9,7 @@ Imagine if, everytime you wanted to pull data from a database, you had to write 
 Nobody would put up with that, yet that's exactly what we do when scraping the web.
 
 Below is an example of the code we dreadfully write to scrape a simple web page using Python and BeautifulSoup.
-This code fetches a recipe page and extracts the list of ingredients into a CSV file:
+This code fetches a recipe page and extracts the list of ingredients into a CSV file ignoring the "Deselect All" option contained in the list.
 !!! danger
         import requests
         import csv
@@ -54,13 +54,34 @@ This code fetches a recipe page and extracts the list of ingredients into a CSV 
             writer.writerow(["body"])
             for ingredient in ingredients:
                 writer.writerow([ingredient])
-    
+As you can see, even for a simple task like extracting ingredients from a recipe page, we have to write a lot of boilerplate code to handle HTTP requests, parse HTML, navigate the DOM, and write to a CSV file.
 
 ## The Scrapegoat Solution
 Scrapegoat started with a question: *Why can't we query web pages like we query a database?*
 
-Scrapegoat is designed with the query at the center. The goal of Scrapegoat is simple: you shouldn't have to write boilerplate, string libraries together, or even think about the underlying plumbing.
+Scrapegoat is designed with the query at the center.
+You shouldn't have to write boilerplate, string libraries together, or even think about the underlying plumbing.
 With Scrapegoat, you write queries that express *what* data you want to extract, and Scrapegoat takes care of *how* to get it.
+
+!!! success
+        query = """
+                VISIT "https://example.com";
+                SCRAPE a IN table;
+                EXTRACT href;
+                OUTPUT json --filename 'links';
+                """
+        results = Shepherd().herd(query)
+
+You can even run our package through the CLI!
+!!! success
+        scrapegoat example.goat
+
+## Goatspeak: The Querying Language for Scrapegoat
+At the heart of Scrapegoat is Goatspeak, a domain-specific language (DSL) designed specifically for webscraping.
+Goatspeak allows you to express complex scraping tasks in a concise and readable way.
+
+We pride ourselves on ensuring Goatspeak is easy to learn, even for those new to webscraping. 
+With only 5 commands, Goatspeak allows you to fetch pages, navigate the DOM, extract data, and structure the results exactly how you want them.
 
 Below is that same example from earlier.
 However, this time with a query, the Scrapegoat way:
@@ -69,13 +90,6 @@ However, this time with a query, the Scrapegoat way:
         SCRAPE span IF @class="o-Ingredients__a-Ingredient--CheckboxLabel" IF body != "Deselect All";
         EXTRACT body;
         OUTPUT csv --filename "ingredients";
-
-## Goatspeak: A Language for Webscraping
-At the heart of Scrapegoat is Goatspeak, a domain-specific language (DSL) designed specifically for webscraping.
-Goatspeak allows you to express complex scraping tasks in a concise and readable way.
-
-We pride ourselves on ensuring Goatspeak is easy to learn, even for those new to webscraping. 
-With only 5 commands, Goatspeak allows you to fetch pages, navigate the DOM, extract data, and structure the results exactly how you want them.
 
 However, if building queries isn't your style, Scrapegoat also provides an entirely code-free experience through our Loom extension, which offers a graphical interface for building and running Goatspeak queries.
 
@@ -100,6 +114,7 @@ Our documentation goes over extensively how and where to add new features to Scr
 - **Extendable**: Easily add new features and commands to Scrapegoat.
 - **JavaScript Site Support**: Built-in support for scraping JavaScript-rendered pages using a headless browser.
 - **Multiple Output Formats**: Export scraped data in various formats like JSON or CSV.
+- **Command-Line Interface**: Run Goatspeak queries directly from the terminal.
 
 Building webscrapers with Scrapegoat becomes a joy, not a chore.
 To get started, check out our [installation guide](installation.md) and start writing your first Goatspeak query today!
