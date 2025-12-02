@@ -115,4 +115,4 @@ pip install .
 ## Conclusion
 You have now successfully installed Scrapegoat and its optional extensions.
 You can start using Scrapegoat for your web scraping needs.
-For more information on how to use Scrapegoat, visit [Getting Started](getting-started.md) to begin using Scrapegoat.
+For more information on how to use Scrapegoat, take a peak at our [tutorials](tutorials/core-tutorial.md) to begin using Scrapegoat.
