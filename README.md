@@ -184,6 +184,21 @@ Responsible for developing the Loom extension, creating the graphical interface 
 
 Developed the LSP and linter extension for Goatspeak, improving the development experience for users writing Goatspeak scripts.
 
+<p align="center">
+    <!-- LinkedIn -->
+    <a href="https://www.linkedin.com/in/lucas-angelozzi/" target="_blank">
+        <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+    </a>
+    <!-- GitHub -->
+    <a href="https://github.com/Langelozzi">
+        <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+    </a>
+    <!-- Email -->
+    <a href="mailto:Lucasangelozzi32@gmail.com">
+        <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email">
+    </a>
+</p>
+
 ## Acknowledgements
 
 Scrapegoat was developed as a semester-long project at British Columbia Institute of Technology (BCIT) for the course [COMP 7082 - Software Engineering](https://www.bcit.ca/courses/software-engineering-comp-7082/). The team will always express its deepest appreciation to [BCIT](https://www.bcit.ca/), the [Bachelor of Science in Applied Computer Science](https://www.bcit.ca/programs/bachelor-of-science-in-applied-computer-science/?gclsrc=aw.ds&gad_source=1&gad_campaignid=6619783868&gbraid=0AAAAADA1Hd1fv6rgLxfuBhvK5Rm2qP96C&gclid=Cj0KCQiAubrJBhCbARIsAHIdxD-4qTkpFYvcyLX83bOhPxmdYRYj3ENnir7DR4H5ghMb5fbfcztWkoMaApW-EALw_wcB) program, and [Fatemeh Riahi](https://www.linkedin.com/in/fatemeh-riahi-99b3775a/) for her continuous support and guidance throughout the project.
