@@ -103,6 +103,8 @@ However, this time with a query, the Scrapegoat way:
     OUTPUT csv --filename "ingredients";
     ````
 
+### Loom: A Graphical Interface for Building Goatspeak Queries
+
 However, if building queries isn't your style, Scrapegoat also provides an entirely code-free experience through our Loom extension, which offers a graphical interface for building and running Goatspeak queries.
 
 Furthermore, Goatspeak queries are designed to be portable and reusable.

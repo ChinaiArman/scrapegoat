@@ -4,13 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scrapegoat-core"
-version = "1.3.0"
+version = "1.3.1"
 description = "A toolkit of functions, classes, and utilities for creating web scrapers."
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { text = "MIT" }
 authors = [
-  { name = "Arman Chinai", email = "chinaiarman@gmail.com" },
-  { name = "Lucas Angelozzi", email = "lucasangelozzi32@gmail.com"}
+  { name = "Arman Chinai", email = "chinaiarman@gmail.com" }
 ]
 requires-python = ">=3.12"
 
@@ -22,7 +21,7 @@ keywords = ["scraping", "webscraping", "automation", "html", "parsing"]
 
 [project.urls]
 Homepage = "https://github.com/ChinaiArman/scrapegoat"
-Documentation = "https://github.com/ChinaiArman/scrapegoat/blob/main/README.md"
+Documentation = "https://chinaiarman.github.io/scrapegoat/"
 Source = "https://github.com/ChinaiArman/scrapegoat"
 Issues = "https://github.com/ChinaiArman/scrapegoat/issues"
 
@@ -33,7 +32,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [project.optional-dependencies]
-loom = ["scrapegoat-loom>=1.3.0"]
+loom = ["scrapegoat-loom>=1.3.1"]
 js = [
   "playwright>=1.56.0",
 ]
