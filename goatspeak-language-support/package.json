@@ -42,7 +42,7 @@
     "main": "./out/client/src/extension.js",
     "scripts": {
         "compile": "tsc -p .",
-        "deploy": "vsce publish --yarn"
+        "deploy": "vsce publish"
     },
     "dependencies": {
         "vscode-languageclient": "^9.0.1",
