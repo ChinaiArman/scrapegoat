@@ -1,65 +1,30 @@
-# goat-language-support README
+# Goatspeak Query Language (GQL)
 
-This is the README for your extension "goat-language-support". After writing up a brief description, we recommend including the following sections.
+Official VS Code extension for **Goatspeak Query Language (GQL)** — the official language for the **Scapegoat** web scraper.
+
+This extension provides editor support for writing Goatspeak queries, including syntax highlighting and IntelliSense.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Syntax highlighting for Goatspeak (`.goat`) files  
+- IntelliSense for Goatspeak keywords, functions, and query structures  
+- Language-aware autocompletion for faster query writing  
+- Official extension maintained alongside Scapegoat
 
-For example if there is an image subfolder under your extension project workspace:
+## Supported File Types
 
-\!\[feature X\]\(images/feature-x.png\)
+- `.goat`, `.g`, `.gql` — Goatspeak Query Language files
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Getting Started
 
-## Requirements
+1. Install the extension from the VS Code Marketplace  
+2. Open or create a Goatspeak file  
+3. Start writing Goatspeak queries — features activate automatically
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## About Goatspeak
 
-## Extension Settings
+Goatspeak is the official query language for **Scapegoat**, a web scraping and data extraction platform. It is designed to be readable, expressive, and optimized for structured scraping workflows.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Feedback & Issues
 
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+If you encounter bugs or have feature requests, please open an issue in the Scapegoat repository or the extension issue tracker.
