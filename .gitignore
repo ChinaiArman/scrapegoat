@@ -2,3 +2,6 @@
 *.csv
 *.goat
 *.json
+
+# MacOS file
+.DS_Store
